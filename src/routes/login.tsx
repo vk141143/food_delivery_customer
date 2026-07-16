@@ -92,6 +92,39 @@ function LoginPage() {
             Register
           </Link>
         </p>
+
+        <div className="mt-8">
+          <p className="mb-3 text-center text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">Other portals</p>
+          <div className="grid grid-cols-3 gap-2">
+            <a
+              href="https://driverside.netlify.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-col items-center gap-1.5 rounded-2xl border border-border bg-card px-2 py-3 text-center shadow-soft transition-transform active:scale-95 hover:shadow-card"
+            >
+              <span className="text-2xl">🛵</span>
+              <span className="text-[11px] font-bold text-foreground">Driver Side</span>
+            </a>
+            <a
+              href="https://adminsidef.netlify.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-col items-center gap-1.5 rounded-2xl border border-border bg-card px-2 py-3 text-center shadow-soft transition-transform active:scale-95 hover:shadow-card"
+            >
+              <span className="text-2xl">🛡️</span>
+              <span className="text-[11px] font-bold text-foreground">Admin Side</span>
+            </a>
+            <a
+              href="https://restorentside.netlify.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-col items-center gap-1.5 rounded-2xl border border-border bg-card px-2 py-3 text-center shadow-soft transition-transform active:scale-95 hover:shadow-card"
+            >
+              <span className="text-2xl">🍴</span>
+              <span className="text-[11px] font-bold text-foreground">Restaurant Side</span>
+            </a>
+          </div>
+        </div>
       </div>
     </div>
   );
