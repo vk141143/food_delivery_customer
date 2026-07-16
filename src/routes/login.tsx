@@ -29,7 +29,7 @@ function LoginPage() {
       setError("Incorrect password.");
       return;
     }
-    login(email, user.name);
+    login(email, user.name, user.phone);
     navigate({ to: "/" });
   };
 

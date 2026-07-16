@@ -1,9 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { MapPin, Pencil, Plus, Tag, ChevronRight, CheckCircle2, Locate } from "lucide-react";
+import { MapPin, Pencil, Plus, Tag, ChevronRight, CheckCircle2, Locate, Phone } from "lucide-react";
 import { useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { useCart } from "@/lib/cart";
 import { useOrders } from "@/lib/orders";
+import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/checkout")({
   component: CheckoutPage,
@@ -20,12 +21,15 @@ const VALID_COUPONS: Record<string, number> = {
 function CheckoutPage() {
   const { items, updateQty } = useCart();
   const { placeOrder } = useOrders();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const [address, setAddress] = useState("221B Baker Street, Mumbai");
   const [editingAddress, setEditingAddress] = useState(false);
   const [draftAddress, setDraftAddress] = useState(address);
   const [locating, setLocating] = useState(false);
+
+  const [whatsapp, setWhatsapp] = useState(user?.phone ?? "");
 
   const [coupon, setCoupon] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState("");
@@ -84,6 +88,65 @@ function CheckoutPage() {
     items.forEach((i) => updateQty(i.id, 0));
     setOrderId(id);
     setOrdered(true);
+
+    const phone = whatsapp.replace(/\D/g, "");
+    if (phone.length >= 10) {
+      const trackingUrl = `https://feasty.netlify.app/orders`;
+      const orderDate = new Date().toLocaleString("en-IN", {
+        day: "numeric", month: "short", year: "numeric",
+        hour: "2-digit", minute: "2-digit",
+      });
+
+      const itemLines = items
+        .map((i) => {
+          const unitPrice = i.discountPrice ?? i.price;
+          const lineTotal = unitPrice * i.qty;
+          const orig = i.discountPrice ? ` ~~₹${i.price}~~` : "";
+          return `  ${i.emoji} *${i.name}*${orig}\n     ${i.qty} × ₹${unitPrice} = *₹${lineTotal}*\n     📍 ${i.restaurant}`;
+        })
+        .join("\n\n");
+
+      const lines = [
+        `🍔 *FEASTY — Order Confirmed!* 🎉`,
+        `━━━━━━━━━━━━━━━━━━━━━━`,
+        ``,
+        `📦 *Tracking ID:* \`${id}\``,
+        `📅 *Date:* ${orderDate}`,
+        `📍 *Deliver to:*`,
+        `   ${address}`,
+        ``,
+        `━━━━━━━━━━━━━━━━━━━━━━`,
+        `🛒 *ORDER ITEMS*`,
+        `━━━━━━━━━━━━━━━━━━━━━━`,
+        ``,
+        itemLines,
+        ``,
+        `━━━━━━━━━━━━━━━━━━━━━━`,
+        `💰 *BILL SUMMARY*`,
+        `━━━━━━━━━━━━━━━━━━━━━━`,
+        `🧾 Item total       ₹${subtotal}`,
+        `🚚 Delivery fee     ₹${delivery}`,
+        `🏛️ Taxes & charges  ₹${tax}`,
+        `📱 Platform fee     ₹${platform}`,
+        ...(discount > 0 ? [`🎟️ Coupon (${appliedCoupon})  −₹${discount}`] : []),
+        ``,
+        `💳 *GRAND TOTAL: ₹${total}*`,
+        ``,
+        `━━━━━━━━━━━━━━━━━━━━━━`,
+        `⏱️ *Estimated Delivery:* 25–35 min`,
+        ``,
+        `🔗 *Track your order:*`,
+        trackingUrl,
+        ``,
+        `━━━━━━━━━━━━━━━━━━━━━━`,
+        `Thank you for ordering with *Feasty*! 🚀`,
+        `We'll deliver hot & fresh to your door. 🍕`,
+      ];
+
+      const encoded = encodeURIComponent(lines.join("\n"));
+      const fullPhone = phone.length === 10 ? `91${phone}` : phone;
+      window.open(`https://wa.me/${fullPhone}?text=${encoded}`, "_blank");
+    }
   };
 
   if (ordered) {
@@ -96,6 +159,12 @@ function CheckoutPage() {
         <p className="mt-2 text-sm text-muted-foreground">
           Your order <span className="font-bold text-foreground">{orderId}</span> has been placed successfully.
         </p>
+        {whatsapp.replace(/\D/g, "").length >= 10 && (
+          <p className="mt-2 text-sm text-muted-foreground">
+            💬 Order details sent to WhatsApp{" "}
+            <span className="font-bold text-foreground">{whatsapp}</span>
+          </p>
+        )}
         <button
           onClick={() => navigate({ to: "/orders" })}
           className="mt-8 h-14 w-full max-w-xs rounded-2xl bg-gradient-primary text-[15px] font-bold text-primary-foreground shadow-glow"
@@ -198,6 +267,27 @@ function CheckoutPage() {
               </p>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* WhatsApp number */}
+      <section className="mx-5 mt-4 rounded-3xl border border-border bg-card p-4 shadow-soft">
+        <div className="flex items-center gap-2">
+          <Phone className="h-4 w-4 text-primary" />
+          <h2 className="text-sm font-bold">WhatsApp number</h2>
+        </div>
+        <p className="mt-1 text-[12px] text-muted-foreground">Order confirmation will be sent to this number</p>
+        <div className="mt-3 flex items-center gap-2 rounded-2xl border border-border bg-background px-4">
+          <span className="text-[14px] font-semibold text-muted-foreground">🇮🇳 +91</span>
+          <div className="h-5 w-px bg-border" />
+          <input
+            type="tel"
+            value={whatsapp}
+            onChange={(e) => setWhatsapp(e.target.value)}
+            placeholder="Enter WhatsApp number"
+            maxLength={15}
+            className="h-12 flex-1 bg-transparent text-[14px] text-foreground placeholder:text-muted-foreground focus:outline-none"
+          />
         </div>
       </section>
 

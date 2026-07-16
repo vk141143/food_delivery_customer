@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { User, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { User, Mail, Lock, Phone, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/register")({
@@ -12,6 +12,7 @@ function RegisterPage() {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
@@ -24,15 +25,19 @@ function RegisterPage() {
       setError("Password must be at least 6 characters.");
       return;
     }
+    if (phone.replace(/\D/g, "").length < 10) {
+      setError("Enter a valid 10-digit WhatsApp number.");
+      return;
+    }
     if (typeof window !== "undefined" && localStorage.getItem(`user_${email}`)) {
       setError("An account with this email already exists.");
       return;
     }
 
     if (typeof window !== "undefined") {
-      localStorage.setItem(`user_${email}`, JSON.stringify({ name, email, password }));
+      localStorage.setItem(`user_${email}`, JSON.stringify({ name, email, phone, password }));
     }
-    login(email, name);
+    login(email, name, phone);
     navigate({ to: "/" });
   };
 
@@ -67,6 +72,18 @@ function RegisterPage() {
               placeholder="Email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              required
+              className="h-14 w-full rounded-2xl border border-border bg-card pl-11 pr-4 text-[15px] text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+          </div>
+
+          <div className="relative">
+            <Phone className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              type="tel"
+              placeholder="WhatsApp number (e.g. 9876543210)"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
               required
               className="h-14 w-full rounded-2xl border border-border bg-card pl-11 pr-4 text-[15px] text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
